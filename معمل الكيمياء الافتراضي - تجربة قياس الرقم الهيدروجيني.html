@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معمل الكيمياء الافتراضي: قياس الرقم الهيدروجيني (pH)</title>
+    <!-- استيراد خط تجوال العربي العصري -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- استيراد مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        /* تنسيقات خاصة بالكأس الزجاجي والمسبار والورقة */
+        .beaker-glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.4) 100%);
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.8), 0 15px 30px -10px rgba(15, 23, 42, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            border-top: none;
+        }
+        .liquid-transition {
+            transition: background-color 0.6s ease, height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tool-transition {
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .paper-tip-transition {
+            transition: background-color 0.8s ease;
+        }
+        .formula-ltr {
+            direction: ltr;
+            unicode-bidi: isolate;
+            display: inline-block;
+        }
+        /* تخصيص شريط التمرير */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #0284c7;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+            border: 2px solid #ffffff;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .active-ph-box {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+            box-shadow: 0 0 0 3px #0f172a, 0 8px 15px rgba(0,0,0,0.25);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- الترويسة الرئيسية واسم المعلمة -->
+    <header class="bg-gradient-to-l from-indigo-900 via-blue-900 to-cyan-800 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-center md:text-right">
+                <div class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-sm border border-white/20 shrink-0">
+                    <!-- أيقونة دورق كيميائي -->
+                    <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-5 0v5.172a2 2 0 01-.586 1.414l-4.828 4.828A2 2 0 004 15.828V19a2 2 0 002 2h12a2 2 0 002-2v-3.172a2 2 0 00-.586-1.414l-4.828-4.828A2 2 0 0114 8.172V3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 15h12" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">معمل الكيمياء الافتراضي: قياس الرقم الهيدروجيني (<span class="formula-ltr">pH</span>)</h1>
+                    <p class="text-xs sm:text-sm text-cyan-100 mt-0.5">استكشاف قوة الحموض والقواعد والتأين في المحاليل المائية</p>
+                </div>
+            </div>
+
+            <!-- شارة اسم المعلمة البارزة -->
+            <div class="bg-amber-400/20 border border-amber-300/50 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2.5 shadow-inner">
+                <span class="bg-amber-400 text-slate-900 p-1.5 rounded-xl font-bold text-xs shadow-sm">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                    </svg>
+                </span>
+                <span class="font-extrabold text-sm sm:text-base text-amber-200">إعداد المعلمة: أمة الرحمن الشُعبي</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- شريط التنقل بين وضع المختبر ووضع الاختبار -->
+    <div class="max-w-7xl mx-auto w-full px-4 pt-4 sm:px-6">
+        <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex gap-1.5 w-full sm:w-auto">
+            <button id="btnModeLab" onclick="switchMode('lab')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-2">
+                <span>🧪</span>
+                <span>المختبر التفاعلي</span>
+            </button>
+            <button id="btnModeQuiz" onclick="switchMode('quiz')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-2">
+                <span>🎯</span>
+                <span>اختبر فهمك (المحاليل المجهولة)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-4 sm:px-6 flex-1">
+        
+        <!-- شريط تحدي المحلول المجهول (يظهر فقط في وضع الاختبار) -->
+        <div id="quizBanner" class="hidden mb-5 bg-gradient-to-r from-purple-700 to-indigo-800 text-white rounded-3xl p-5 shadow-lg border border-purple-400/30">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-amber-400 text-slate-900 text-xs font-extrabold px-2.5 py-0.5 rounded-full">تحدي المختبر</span>
+                        <h2 class="text-lg sm:text-xl font-extrabold" id="quizQuestionTitle">محلول مجهول رقم #1</h2>
+                    </div>
+                    <p class="text-sm text-purple-100">استخدم <strong>ورقة الكاشف العالمي</strong> أو <strong>جهاز <span class="formula-ltr">pH</span> الرقمي</strong> لفحص المحلول في الكأس، ثم اختر تصنيفه الصحيح:</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-center gap-2" id="quizOptions">
+                    <button onclick="checkQuizAnswer('حمض قوي')" class="px-3.5 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs sm:text-sm shadow transition">حمض قوي</button>
+                    <button onclick="checkQuizAnswer('حمض ضعيف')" class="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm shadow transition">حمض ضعيف</button>
+                    <button onclick="checkQuizAnswer('متعادل')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow transition">متعادل</button>
+                    <button onclick="checkQuizAnswer('قاعدة ضعيفة')" class="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs sm:text-sm shadow transition">قاعدة ضعيفة</button>
+                    <button onclick="checkQuizAnswer('قاعدة قوية')" class="px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs sm:text-sm shadow transition">قاعدة قوية</button>
+                </div>
+
+                <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-2xl border border-white/20 shrink-0">
+                    <div class="text-center">
+                        <div class="text-xs text-purple-200">النقاط</div>
+                        <div class="text-lg font-extrabold text-amber-300" id="quizScore">0 / 0</div>
+                    </div>
+                    <button onclick="nextQuizQuestion()" class="px-3 py-1.5 bg-white text-indigo-900 hover:bg-indigo-50 font-bold text-xs rounded-xl shadow transition">سؤال تالي ↻</button>
+                </div>
+            </div>
+            <!-- رسالة التغذية الراجعة للاختبار -->
+            <div id="quizFeedback" class="hidden mt-3 p-3 rounded-2xl text-sm font-bold text-center"></div>
+        </div>
+
+        <!-- الشبكة الرئيسية للمختبر -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- العمود الأيمن: اختيار المحاليل -->
+            <section id="solutionsPanel" class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+                        <span>1. اختر المحلول المراد فحصه</span>
+                    </h2>
+                    <span class="text-xs font-bold text-slate-400">11 مادة</span>
+                </div>
+
+                <!-- قائمة منسدلة للهواتف لسهولة الوصول السريع -->
+                <div class="mb-3 sm:hidden">
+                    <label for="mobileSolutionSelect" class="block text-xs font-bold text-slate-500 mb-1">اختيار سريع من القائمة:</label>
+                    <select id="mobileSolutionSelect" onchange="selectSolutionById(this.value)" class="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold text-sm text-slate-800 focus:outline-none focus:border-blue-500">
+                    </select>
+                </div>
+
+                <!-- بطاقات المحاليل -->
+                <div id="solutionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-[430px] overflow-y-auto pl-1 pr-0.5">
+                    <!-- يتم توليد البطاقات بواسطة JavaScript -->
+                </div>
+            </section>
+
+            <!-- العمود الأوسط: منصة التجربة والكأس الزجاجي وأدوات القياس -->
+            <section class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80 flex flex-col items-center">
+                <div class="w-full flex items-center justify-between mb-2">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-6 bg-cyan-600 rounded-full inline-block"></span>
+                        <span>2. منصة التجربة والقياس</span>
+                    </h2>
+                    <button onclick="resetExperiment()" class="text-xs font-bold text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2.5 py-1.5 rounded-xl transition">
+                        إعادة ضبط ↺
+                    </button>
+                </div>
+
+                <!-- أزرار التحكم بأدوات الفحص -->
+                <div class="grid grid-cols-2 gap-2.5 w-full mb-3">
+                    <button id="btnTogglePaper" onclick="togglePaper()" class="p-2.5 rounded-2xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition shadow-sm">
+                        <span class="text-lg">📜</span>
+                        <span id="paperBtnText">غمس ورقة الكاشف</span>
+                    </button>
+                    <button id="btnToggleMeter" onclick="toggleMeter()" class="p-2.5 rounded-2xl border-2 border-cyan-500 bg-cyan-50 hover:bg-cyan-100 text-cyan-900 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition shadow-sm">
+                        <span class="text-lg">📟</span>
+                        <span id="meterBtnText">غمس مسبار جهاز pH</span>
+                    </button>
+                </div>
+
+                <!-- منطقة المحاكاة البصرية (الكأس + الأيونات + الأدوات) -->
+                <div class="relative w-full h-[350px] bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200/90 rounded-3xl border border-slate-200 overflow-hidden flex flex-col items-center justify-end pb-6 select-none">
+                    
+                    <!-- اسم المحلول الحالي أعلى المنصة -->
+                    <div class="absolute top-3 right-3 left-3 flex justify-between items-center z-20 pointer-events-none">
+                        <span id="stageSolutionName" class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold text-slate-800 shadow-sm border border-slate-200">
+                            حمض الهيدروكلوريك (HCl)
+                        </span>
+                        <span id="stageVolumeBadge" class="bg-blue-600/90 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-sm">
+                            100 mL
+                        </span>
+                    </div>
+
+                    <!-- جهاز قياس الرقم الهيدروجيني الرقمي (Digital pH Meter) -->
+                    <div id="digitalMeterWrapper" class="tool-transition absolute top-11 left-4 z-20 flex flex-col items-center" style="transform: translateY(-10px);">
+                        <!-- شاشة الجهاز -->
+                        <div class="bg-slate-800 border-2 border-slate-600 rounded-2xl p-2 shadow-xl w-28 text-center">
+                            <div class="text-[10px] text-slate-300 font-bold tracking-wider mb-0.5">pH METER</div>
+                            <div class="bg-emerald-950 border border-emerald-700/60 rounded-lg py-1 px-2">
+                                <span id="meterScreenReading" class="font-mono text-lg font-extrabold text-emerald-400 tracking-widest">--.-</span>
+                            </div>
+                        </div>
+                        <!-- سلك ومسبار الجهاز -->
+                        <div class="w-1 h-6 bg-slate-700"></div>
+                        <div class="w-3.5 h-28 bg-gradient-to-r from-slate-300 via-white to-slate-400 border border-slate-500 rounded-b-full shadow-md flex flex-col justify-end items-center pb-1">
+                            <div class="w-2 h-3 bg-cyan-500/80 rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- ورقة الكاشف العالمي (Universal Indicator Paper) -->
+                    <div id="indicatorPaperWrapper" class="tool-transition absolute top-12 right-7 z-20 flex flex-col items-center" style="transform: translateY(-10px);">
+                        <div class="text-[10px] font-bold text-slate-500 bg-white/80 px-1.5 py-0.5 rounded mb-1 shadow-sm">كاشف عالمي</div>
+                        <div class="w-6 h-32 rounded-md shadow-md border border-amber-300/80 overflow-hidden flex flex-col bg-amber-100">
+                            <!-- الجزء العلوي الجاف -->
+                            <div class="h-1/2 w-full bg-amber-100"></div>
+                            <!-- الطرف السفلي الذي يتغير لونه عند الغمس -->
+                            <div id="paperDippedTip" class="paper-tip-transition h-1/2 w-full bg-amber-100 border-t border-dashed border-amber-300/60"></div>
+                        </div>
+                    </div>
+
+                    <!-- الكأس الزجاجي المدرج (Beaker) -->
+                    <div class="relative w-48 sm:w-52 h-52 beaker-glass rounded-b-3xl z-10 flex flex-col justify-end overflow-hidden">
+                        <!-- تدريجات الكأس -->
+                        <div class="absolute inset-y-4 right-2 flex flex-col justify-between text-[10px] font-bold text-slate-500/80 z-20 pointer-events-none">
+                            <span>— 200 mL</span>
+                            <span>— 150 mL</span>
+                            <span>— 100 mL</span>
+                            <span>— 50 mL</span>
+                        </div>
+
+                        <!-- السائل داخل الكأس -->
+                        <div id="beakerLiquid" class="liquid-transition w-full relative overflow-hidden" style="height: 55%; background-color: rgba(239, 68, 68, 0.35);">
+                            <!-- سطح السائل العلوي -->
+                            <div class="w-full h-2 bg-white/40 absolute top-0 left-0"></div>
+                            <!-- لوحة الرسم المتحركة للأيونات H+ و OH- -->
+                            <canvas id="ionsCanvas" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- قاعدة طاولة المختبر -->
+                    <div class="w-64 h-3 bg-slate-400/60 rounded-full mt-1 blur-[1px]"></div>
+                </div>
+
+                <!-- مفتاح الأيونات وأداة التخفيف بالماء المقطر -->
+                <div class="w-full mt-3 space-y-3">
+                    <!-- مفتاح دلالة الأيونات -->
+                    <div class="flex items-center justify-center gap-4 bg-slate-50 py-2 px-3 rounded-2xl border border-slate-200 text-xs font-bold">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-extrabold shadow-sm">+</span>
+                            <span>أيون الهيدروجين (<span class="formula-ltr">H<sup>+</sup></span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] flex items-center justify-center font-extrabold shadow-sm">-</span>
+                            <span>أيون الهيدروكسيد (<span class="formula-ltr">OH<sup>−</sup></span>)</span>
+                        </div>
+                    </div>
+
+                    <!-- شريط إضافة ماء مقطر للتخفيف -->
+                    <div class="bg-sky-50/80 border border-sky-200 rounded-2xl p-3">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="dilutionSlider" class="text-xs sm:text-sm font-extrabold text-sky-900 flex items-center gap-1.5">
+                                <span>💧</span>
+                                <span>إضافة ماء مقطر للتخفيف:</span>
+                            </label>
+                            <span id="waterAddedLabel" class="text-xs font-extrabold bg-sky-600 text-white px-2.5 py-0.5 rounded-full">0 mL ماء</span>
+                        </div>
+                        <input id="dilutionSlider" type="range" min="0" max="100" value="0" oninput="handleDilution(this.value)" class="w-full h-2 bg-sky-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[11px] font-bold text-sky-700 mt-1">
+                            <span>مركز (0%)</span>
+                            <span>نصف مخفف</span>
+                            <span>مخفف جداً (يقترب من pH 7)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- العمود الأيسر: مقياس pH والتحليل العلمي -->
+            <section class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-6 bg-emerald-600 rounded-full inline-block"></span>
+                        <span>3. التحليل ومقياس <span class="formula-ltr">pH</span></span>
+                    </h2>
+                    <span id="classificationBadge" class="px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-red-100 text-red-800 border border-red-300">
+                        حمض قوي
+                    </span>
+                </div>
+
+                <!-- مقياس الألوان التفاعلي 0 - 14 -->
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-extrabold text-slate-600">مقياس الرقم الهيدروجيني (<span class="formula-ltr">0 - 14</span>)</span>
+                        <span id="currentPhBigBadge" class="text-sm font-extrabold text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-300 shadow-sm">
+                            pH = 1.0
+                        </span>
+                    </div>
+                    <div id="phScaleContainer" class="grid grid-cols-15 gap-0.5 sm:gap-1" style="grid-template-columns: repeat(15, minmax(0, 1fr)); direction: ltr;">
+                        <!-- يتم توليد مربعات 0 إلى 14 بواسطة JS -->
+                    </div>
+                    <div class="flex justify-between text-[11px] font-extrabold mt-2 px-0.5">
+                        <span class="text-red-600">حمضي (&lt; 7)</span>
+                        <span class="text-emerald-700">متعادل (7)</span>
+                        <span class="text-indigo-700">قاعدي (&gt; 7)</span>
+                    </div>
+                </div>
+
+                <!-- بطاقة التفسير العلمي للمحلول -->
+                <div id="scientificDetailsCard" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                            <div class="text-[11px] font-bold text-slate-500">الصيغة الكيميائية</div>
+                            <div id="detailFormula" class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5 formula-ltr">HCl</div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                            <div class="text-[11px] font-bold text-slate-500">درجة التأيّن في الماء</div>
+                            <div id="detailIonization" class="text-sm sm:text-base font-extrabold text-blue-700 mt-0.5">تأين تام (قوي)</div>
+                        </div>
+                    </div>
+
+                    <!-- مقارنة تركيز أيونات H+ و OH- -->
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-extrabold text-slate-700">مقارنة تركيز الأيونات في المحلول:</span>
+                            <span id="ionComparisonFormula" class="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200 formula-ltr">[H⁺] &gt; [OH⁻]</span>
+                        </div>
+                        
+                        <!-- أشرطة بيانية بصرية لتركيز الأيونات -->
+                        <div class="space-y-2">
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-red-700">تركيز أيونات الهيدروجين (<span class="formula-ltr">H<sup>+</sup></span>)</span>
+                                    <span id="hPlusPercentText" class="text-red-700">مرتفع جداً</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="hPlusBar" class="h-full bg-red-500 rounded-full transition-all duration-500" style="width: 95%;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold mb-0.5">
+                                    <span class="text-blue-700">تركيز أيونات الهيدروكسيد (<span class="formula-ltr">OH<sup>−</sup></span>)</span>
+                                    <span id="ohMinusPercentText" class="text-blue-700">منخفض جداً</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="ohMinusBar" class="h-full bg-blue-600 rounded-full transition-all duration-500" style="width: 5%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- شرح مبسط للطالب -->
+                    <div class="bg-amber-50/90 border border-amber-200 rounded-2xl p-3.5">
+                        <div class="text-xs font-extrabold text-amber-900 mb-1 flex items-center gap-1.5">
+                            <span>💡</span>
+                            <span>التفسير العلمي:</span>
+                        </div>
+                        <p id="detailDescription" class="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                            حمض الهيدروكلوريك حمض قوي يتأين كلياً في الماء منتجاً تركيزاً عالياً جداً من أيونات الهيدروجين الموجبة، لذا تكون قيمة pH منخفضة جداً.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- تذييل الصفحة -->
+    <footer class="bg-white border-t border-slate-200 mt-6 py-3 px-4 text-center text-xs sm:text-sm text-slate-600 font-bold">
+        معمل الكيمياء التفاعلي – تجربة مقياس الرقم الهيدروجيني (<span class="formula-ltr">pH</span>) | إعداد المعلمة: <span class="text-blue-700">أمة الرحمن الشُعبي</span>
+    </footer>
+
+    <script>
+        // قاعدة بيانات المحاليل والمواد الكيميائية واليومية
+        const solutionsData = [
+            {
+                id: 'hcl',
+                name: 'حمض الهيدروكلوريك',
+                formula: 'HCl',
+                basePh: 1.0,
+                category: 'حمض قوي',
+                ionization: 'تأيّن تام (معظم الجزيئات تتأين)',
+                liquidColor: 'rgba(239, 68, 68, 0.25)',
+                icon: '⚗️',
+                description: 'حمض قوي تتأين معظم جزيئاته سريعاً في الماء منتجةً عدداً كبيراً من أيونات الهيدروجين (H⁺)، لذا فإن قيمة pH له منخفضة جداً.'
+            },
+            {
+                id: 'lemon',
+                name: 'عصير الليمون',
+                formula: 'C₆H₈O₇ (حمض الستريك)',
+                basePh: 2.2,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي (قسم بسيط يتأين)',
+                liquidColor: 'rgba(250, 204, 21, 0.45)',
+                icon: '🍋',
+                description: 'يحتوي على حمض الستريك وهو حمض ضعيف يتأين جزء بسيط من جزيئاته في الماء، ويكون تركيز أيونات H⁺ فيه أكبر من OH⁻.'
+            },
+            {
+                id: 'vinegar',
+                name: 'الخل (حمض الأسيتيك)',
+                formula: 'CH₃COOH',
+                basePh: 3.0,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي (قسم بسيط يتأين)',
+                liquidColor: 'rgba(253, 230, 138, 0.35)',
+                icon: '🫙',
+                description: 'محلول حمض الإيثانويك (الأسيتيك)، وهو حمض ضعيف يبقى الجزء الأكبر من جزيئاته دون تأيّن عند ذوبانه في الماء.'
+            },
+            {
+                id: 'soda',
+                name: 'المشروب الغازي',
+                formula: 'H₂CO₃ (حمض الكربونيك)',
+                basePh: 3.5,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي (قسم بسيط يتأين)',
+                liquidColor: 'rgba(180, 83, 9, 0.45)',
+                icon: '🥤',
+                description: 'يحتوي على حمض الكربونيك الناتج عن ذوبان غاز ثاني أكسيد الكربون في الماء، مما يجعله محلولاً حمضياً ضعيفاً.'
+            },
+            {
+                id: 'orange',
+                name: 'عصير البرتقال',
+                formula: 'حمض الستريك والأسكوربيك',
+                basePh: 3.8,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي (قسم بسيط يتأين)',
+                liquidColor: 'rgba(249, 115, 22, 0.55)',
+                icon: '🍊',
+                description: 'محلول حمضي طبيعي أقل حموضة من عصير الليمون، تتأين جزيئاته بشكل جزئي في الماء.'
+            },
+            {
+                id: 'yogurt',
+                name: 'الزبادي',
+                formula: 'C₃H₆O₃ (حمض اللاكتيك)',
+                basePh: 4.5,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي (قسم بسيط يتأين)',
+                liquidColor: 'rgba(248, 250, 252, 0.92)',
+                icon: '🥣',
+                description: 'يحتوي على حمض اللاكتيك (حمض اللبن) وهو حمض ضعيف يعطي الزبادي مذاقه الحمضي المميز بقيمة pH حول 4.5.'
+            },
+            {
+                id: 'milk',
+                name: 'الحليب',
+                formula: 'محلول مائي معقد',
+                basePh: 6.5,
+                category: 'حمض ضعيف',
+                ionization: 'تأيّن جزئي طفيف جداً',
+                liquidColor: 'rgba(255, 255, 255, 0.95)',
+                icon: '🥛',
+                description: 'الحليب حمضي بشكل طفيف جداً (قريب من التعادل) حيث تبلغ قيمة pH له 6.5، ويزيد تركيز H⁺ فيه قليلاً عن OH⁻.'
+            },
+            {
+                id: 'water',
+                name: 'الماء المقطّر',
+                formula: 'H₂O',
+                basePh: 7.0,
+                category: 'متعادل',
+                ionization: 'تأيّن ذاتي متساوٍ',
+                liquidColor: 'rgba(186, 230, 253, 0.35)',
+                icon: '💧',
+                description: 'الماء المقطر سائل متعادل تماماً عند pH = 7؛ لأن تركيز أيونات الهيدروجين (H⁺) يساوي تماماً تركيز أيونات الهيدروكسيد (OH⁻).'
+            },
+            {
+                id: 'baking_soda',
+                name: 'محلول صودا الخبز',
+                formula: 'NaHCO₃',
+                basePh: 8.5,
+                category: 'قاعدة ضعيفة',
+                ionization: 'تأيّن قليل (جزئي)',
+                liquidColor: 'rgba(224, 242, 254, 0.45)',
+                icon: '🧁',
+                description: 'بيكربونات الصوديوم قاعدة ضعيفة يكون تأيّنها قليلاً في الماء، ويكون تركيز أيونات OH⁻ فيها أكبر من تركيز H⁺.'
+            },
+            {
+                id: 'ammonia',
+                name: 'محلول الأمونيا',
+                formula: 'NH₃',
+                basePh: 11.0,
+                category: 'قاعدة ضعيفة',
+                ionization: 'تأيّن قليل (جزئي)',
+                liquidColor: 'rgba(165, 243, 252, 0.35)',
+                icon: '🧴',
+                description: 'الأمونيا (النشادر) قاعدة ضعيفة تتأين جزئياً في الماء منتجةً أيونات الهيدروكسيد (OH⁻) بتركيز يفوق أيونات H⁺.'
+            },
+            {
+                id: 'naoh',
+                name: 'منظف الأفران (هيدروكسيد الصوديوم)',
+                formula: 'NaOH',
+                basePh: 13.5,
+                category: 'قاعدة قوية',
+                ionization: 'تأيّن كبير (تام في الماء)',
+                liquidColor: 'rgba(199, 210, 254, 0.4)',
+                icon: '🧼',
+                description: 'هيدروكسيد الصوديوم قاعدة قوية جداً تتأين كلياً في الماء منتجةً تركيزاً مرتفعاً من أيونات الهيدروكسيد (OH⁻)، فتصل قيمة pH إلى 13.5.'
+            }
+        ];
+
+        // ألوان مقياس الكاشف العالمي القياسية من 0 إلى 14
+        const phScaleColors = [
+            { val: 0, color: '#dc2626', text: '#ffffff' },
+            { val: 1, color: '#ea580c', text: '#ffffff' },
+            { val: 2, color: '#f97316', text: '#ffffff' },
+            { val: 3, color: '#f59e0b', text: '#ffffff' },
+            { val: 4, color: '#eab308', text: '#0f172a' },
+            { val: 5, color: '#84cc16', text: '#0f172a' },
+            { val: 6, color: '#22c55e', text: '#0f172a' },
+            { val: 7, color: '#15803d', text: '#ffffff' },
+            { val: 8, color: '#0d9488', text: '#ffffff' },
+            { val: 9, color: '#0284c7', text: '#ffffff' },
+            { val: 10, color: '#2563eb', text: '#ffffff' },
+            { val: 11, color: '#1d4ed8', text: '#ffffff' },
+            { val: 12, color: '#4338ca', text: '#ffffff' },
+            { val: 13, color: '#6d28d9', text: '#ffffff' },
+            { val: 14, color: '#581c87', text: '#ffffff' }
+        ];
+
+        // حالة التطبيق
+        let currentSolution = solutionsData[0];
+        let dilutionPercent = 0; // من 0 إلى 100
+        let isPaperDipped = false;
+        let isMeterDipped = false;
+        let currentMode = 'lab'; // 'lab' أو 'quiz'
+
+        // حالة وضع الاختبار
+        let quizIndex = 0;
+        let quizScore = 0;
+        let quizTotal = 0;
+        let quizAnsweredCurrent = false;
+        let mysteryPool = [];
+
+        // مصفوفة الأيونات المتحركة داخل الكأس
+        let ionsArray = [];
+        const canvas = document.getElementById('ionsCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // حساب قيمة pH الفعلية بعد التخفيف بالماء المقطر
+        function getEffectivePh() {
+            const basePh = currentSolution.basePh;
+            if (dilutionPercent === 0 || basePh === 7.0) return basePh;
+            // التخفيف بالماء يقرب قيمة pH تدريجياً نحو 7.0 (محاكاة لوغاريتمية مبسطة للطلاب)
+            const factor = (dilutionPercent / 100) * 0.72;
+            const dilutedPh = basePh + (7.0 - basePh) * factor;
+            return Math.round(dilutedPh * 10) / 10;
+        }
+
+        // الحصول على لون الكاشف العالمي المطابق لقيمة pH
+        function getColorForPh(ph) {
+            const rounded = Math.max(0, Math.min(14, Math.round(ph)));
+            return phScaleColors[rounded].color;
+        }
+
+        // تحديد التصنيف النصي بناءً على قيمة pH الحالية
+        function getCategoryForPh(ph) {
+            if (ph < 3.0) return 'حمض قوي';
+            if (ph >= 3.0 && ph < 6.9) return 'حمض ضعيف';
+            if (ph >= 6.9 && ph <= 7.1) return 'متعادل';
+            if (ph > 7.1 && ph <= 11.5) return 'قاعدة ضعيفة';
+            return 'قاعدة قوية';
+        }
+
+        // تهيئة واجهة المستخدم عند التحميل
+        function initApp() {
+            renderSolutionCards();
+            renderPhScaleBar();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            updateSimulation();
+            requestAnimationFrame(animateIons);
+        }
+
+        // توليد بطاقات المحاليل والقائمة المنسدلة
+        function renderSolutionCards() {
+            const grid = document.getElementById('solutionsGrid');
+            const select = document.getElementById('mobileSolutionSelect');
+            grid.innerHTML = '';
+            select.innerHTML = '';
+
+            solutionsData.forEach(sol => {
+                // إضافة خيار للقائمة المنسدلة
+                const opt = document.createElement('option');
+                opt.value = sol.id;
+                opt.textContent = `${sol.icon} ${sol.name} (pH ${sol.basePh.toFixed(1)})`;
+                select.appendChild(opt);
+
+                // تحديد لون شارة التصنيف
+                let badgeClasses = 'bg-slate-100 text-slate-700';
+                if (sol.category === 'حمض قوي') badgeClasses = 'bg-red-100 text-red-700';
+                else if (sol.category === 'حمض ضعيف') badgeClasses = 'bg-orange-100 text-orange-700';
+                else if (sol.category === 'متعادل') badgeClasses = 'bg-emerald-100 text-emerald-700';
+                else if (sol.category === 'قاعدة ضعيفة') badgeClasses = 'bg-sky-100 text-sky-700';
+                else if (sol.category === 'قاعدة قوية') badgeClasses = 'bg-indigo-100 text-indigo-700';
+
+                const card = document.createElement('button');
+                card.id = `card-${sol.id}`;
+                card.onclick = () => selectSolutionById(sol.id);
+                card.className = `w-full text-right p-2.5 rounded-2xl border-2 transition-all flex items-center justify-between gap-2 hover:border-blue-400 bg-white border-slate-200`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-xl bg-slate-100 w-9 h-9 rounded-xl flex items-center justify-center shrink-0">${sol.icon}</span>
+                        <div class="truncate">
+                            <div class="font-extrabold text-xs sm:text-sm text-slate-800 truncate">${sol.name}</div>
+                            <div class="text-[11px] text-slate-500 font-bold truncate formula-ltr">${sol.formula}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end shrink-0 gap-1">
+                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${badgeClasses}">${sol.category}</span>
+                        <span class="text-[11px] font-extrabold text-slate-600 formula-ltr">pH ${sol.basePh.toFixed(1)}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // توليد مربعات مقياس الرقم الهيدروجيني من 0 إلى 14
+        function renderPhScaleBar() {
+            const container = document.getElementById('phScaleContainer');
+            container.innerHTML = '';
+            phScaleColors.forEach(item => {
+                const box = document.createElement('div');
+                box.id = `ph-box-${item.val}`;
+                box.style.backgroundColor = item.color;
+                box.style.color = item.text;
+                box.className = 'h-8 sm:h-9 rounded-md flex items-center justify-center text-[10px] sm:text-xs font-extrabold transition-all select-none';
+                box.textContent = item.val;
+                container.appendChild(box);
+            });
+        }
+
+        // اختيار محلول محدد
+        function selectSolutionById(id) {
+            const found = solutionsData.find(s => s.id === id);
+            if (!found) return;
+            currentSolution = found;
+            dilutionPercent = 0;
+            document.getElementById('dilutionSlider').value = 0;
+            document.getElementById('mobileSolutionSelect').value = id;
+            updateSimulation();
+        }
+
+        // معالجة شريط التخفيف بالماء المقطر
+        function handleDilution(val) {
+            dilutionPercent = parseInt(val, 10);
+            updateSimulation();
+        }
+
+        // غمس أو رفع ورقة الكاشف العالمي
+        function togglePaper() {
+            isPaperDipped = !isPaperDipped;
+            updateToolsVisuals();
+        }
+
+        // غمس أو رفع مسبار جهاز القياس الرقمي
+        function toggleMeter() {
+            isMeterDipped = !isMeterDipped;
+            updateToolsVisuals();
+        }
+
+        // إعادة ضبط التجربة
+        function resetExperiment() {
+            isPaperDipped = false;
+            isMeterDipped = false;
+            dilutionPercent = 0;
+            document.getElementById('dilutionSlider').value = 0;
+            updateSimulation();
+        }
+
+        // تحديث حركة ولون أدوات الفحص
+        function updateToolsVisuals() {
+            const effectivePh = getEffectivePh();
+            const paperWrapper = document.getElementById('indicatorPaperWrapper');
+            const paperTip = document.getElementById('paperDippedTip');
+            const paperBtnText = document.getElementById('paperBtnText');
+            const btnPaper = document.getElementById('btnTogglePaper');
+
+            const meterWrapper = document.getElementById('digitalMeterWrapper');
+            const meterReading = document.getElementById('meterScreenReading');
+            const meterBtnText = document.getElementById('meterBtnText');
+            const btnMeter = document.getElementById('btnToggleMeter');
+
+            // تحديث ورقة الكاشف العالمي
+            if (isPaperDipped) {
+                paperWrapper.style.transform = 'translateY(68px)';
+                paperTip.style.backgroundColor = getColorForPh(effectivePh);
+                paperBtnText.textContent = 'رفع ورقة الكاشف';
+                btnPaper.classList.add('ring-2', 'ring-amber-500', 'bg-amber-100');
+            } else {
+                paperWrapper.style.transform = 'translateY(-10px)';
+                paperTip.style.backgroundColor = '#fef3c7';
+                paperBtnText.textContent = 'غمس ورقة الكاشف';
+                btnPaper.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-100');
+            }
+
+            // تحديث مسبار الجهاز الرقمي
+            if (isMeterDipped) {
+                meterWrapper.style.transform = 'translateY(62px)';
+                meterReading.textContent = effectivePh.toFixed(1);
+                meterBtnText.textContent = 'رفع مسبار الجهاز';
+                btnMeter.classList.add('ring-2', 'ring-cyan-600', 'bg-cyan-100');
+            } else {
+                meterWrapper.style.transform = 'translateY(-10px)';
+                meterReading.textContent = '--.-';
+                meterBtnText.textContent = 'غمس مسبار جهاز pH';
+                btnMeter.classList.remove('ring-2', 'ring-cyan-600', 'bg-cyan-100');
+            }
+        }
+
+        // التحديث الشامل لجميع عناصر المحاكاة والتحليل
+        function updateSimulation() {
+            const effectivePh = getEffectivePh();
+            const isQuiz = currentMode === 'quiz';
+
+            // إبراز البطاقة المختارة في وضع المختبر
+            solutionsData.forEach(sol => {
+                const card = document.getElementById(`card-${sol.id}`);
+                if (!card) return;
+                if (sol.id === currentSolution.id && !isQuiz) {
+                    card.classList.add('border-blue-600', 'bg-blue-50/60', 'shadow-sm');
+                    card.classList.remove('border-slate-200', 'bg-white');
+                } else {
+                    card.classList.remove('border-blue-600', 'bg-blue-50/60', 'shadow-sm');
+                    card.classList.add('border-slate-200', 'bg-white');
+                }
+            });
+
+            // تحديث مستوى السائل ولونه داخل الكأس
+            const beakerLiquid = document.getElementById('beakerLiquid');
+            const liquidHeight = 52 + (dilutionPercent * 0.36); // من 52% إلى 88%
+            beakerLiquid.style.height = `${liquidHeight}%`;
+            beakerLiquid.style.backgroundColor = currentSolution.liquidColor;
+
+            // تحديث الشارات أعلى الكأس
+            document.getElementById('stageVolumeBadge').textContent = `${100 + dilutionPercent} mL`;
+            document.getElementById('waterAddedLabel').textContent = `${dilutionPercent} mL ماء`;
+
+            if (isQuiz && !quizAnsweredCurrent) {
+                document.getElementById('stageSolutionName').textContent = `❓ محلول مجهول رقم #${quizIndex + 1}`;
+            } else {
+                document.getElementById('stageSolutionName').textContent = `${currentSolution.icon} ${currentSolution.name}`;
+            }
+
+            // تحديث أدوات القياس
+            updateToolsVisuals();
+
+            // تحديث مقياس الألوان 0-14 والبيانات العلمية
+            const roundedPh = Math.max(0, Math.min(14, Math.round(effectivePh)));
+            phScaleColors.forEach(item => {
+                const box = document.getElementById(`ph-box-${item.val}`);
+                if (!box) return;
+                if (item.val === roundedPh && (!isQuiz || quizAnsweredCurrent)) {
+                    box.classList.add('active-ph-box');
+                } else {
+                    box.classList.remove('active-ph-box');
+                }
+            });
+
+            // حساب النسب البصرية للأيونات
+            let hRatio = 50;
+            if (effectivePh < 7) {
+                hRatio = Math.min(96, Math.round(50 + ((7 - effectivePh) / 7) * 46));
+            } else if (effectivePh > 7) {
+                hRatio = Math.max(4, Math.round(50 - ((effectivePh - 7) / 7) * 46));
+            }
+            const ohRatio = 100 - hRatio;
+
+            // تحديث بطاقة التحليل العلمي (إخفاء الإجابة في وضع الاختبار قبل الحل)
+            const cat = dilutionPercent > 0 ? getCategoryForPh(effectivePh) : currentSolution.category;
+            const catBadge = document.getElementById('classificationBadge');
+            const bigPhBadge = document.getElementById('currentPhBigBadge');
+
+            if (isQuiz && !quizAnsweredCurrent) {
+                catBadge.textContent = '؟ بانتظار تصنيفك';
+                catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-purple-100 text-purple-800 border border-purple-300';
+                bigPhBadge.textContent = isMeterDipped ? `pH = ${effectivePh.toFixed(1)}` : 'pH = ؟';
+                document.getElementById('detailFormula').textContent = '؟؟؟';
+                document.getElementById('detailIonization').textContent = 'استخدم أدوات القياس أولاً';
+                document.getElementById('ionComparisonFormula').textContent = '؟ vs ؟';
+                document.getElementById('hPlusPercentText').textContent = 'مجهول';
+                document.getElementById('ohMinusPercentText').textContent = 'مجهول';
+                document.getElementById('hPlusBar').style.width = '50%';
+                document.getElementById('ohMinusBar').style.width = '50%';
+                document.getElementById('detailDescription').textContent = 'اغمس ورقة الكاشف العالمي أو مسبار جهاز القياس الرقمي في المحلول المجهول، ولاحظ الأيونات المتحركة داخل الكأس لتحديد نوع المحلول!';
+            } else {
+                catBadge.textContent = cat;
+                if (cat === 'حمض قوي') catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-red-100 text-red-800 border border-red-300';
+                else if (cat === 'حمض ضعيف') catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-orange-100 text-orange-800 border border-orange-300';
+                else if (cat === 'متعادل') catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300';
+                else if (cat === 'قاعدة ضعيفة') catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-sky-100 text-sky-800 border border-sky-300';
+                else catBadge.className = 'px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-300';
+
+                bigPhBadge.textContent = `pH = ${effectivePh.toFixed(1)}`;
+                document.getElementById('detailFormula').textContent = currentSolution.formula;
+                document.getElementById('detailIonization').textContent = currentSolution.ionization;
+
+                if (effectivePh < 6.9) {
+                    document.getElementById('ionComparisonFormula').textContent = '[H⁺] > [OH⁻]';
+                    document.getElementById('hPlusPercentText').textContent = effectivePh < 3 ? 'مرتفع جداً' : 'أكبر من OH⁻';
+                    document.getElementById('ohMinusPercentText').textContent = effectivePh < 3 ? 'منخفض جداً' : 'أقل من H⁺';
+                } else if (effectivePh > 7.1) {
+                    document.getElementById('ionComparisonFormula').textContent = '[OH⁻] > [H⁺]';
+                    document.getElementById('hPlusPercentText').textContent = effectivePh > 11 ? 'منخفض جداً' : 'أقل من OH⁻';
+                    document.getElementById('ohMinusPercentText').textContent = effectivePh > 11 ? 'مرتفع جداً' : 'أكبر من H⁺';
+                } else {
+                    document.getElementById('ionComparisonFormula').textContent = '[H⁺] = [OH⁻]';
+                    document.getElementById('hPlusPercentText').textContent = 'متساوٍ (50%)';
+                    document.getElementById('ohMinusPercentText').textContent = 'متساوٍ (50%)';
+                }
+
+                document.getElementById('hPlusBar').style.width = `${hRatio}%`;
+                document.getElementById('ohMinusBar').style.width = `${ohRatio}%`;
+
+                let desc = currentSolution.description;
+                if (dilutionPercent > 0 && currentSolution.basePh !== 7.0) {
+                    desc += ` (ملاحظة: إضافة الماء المقطر أدت لتخفيف المحلول وتقريب قيمة pH نحو 7.0).`;
+                }
+                document.getElementById('detailDescription').textContent = desc;
+            }
+
+            // إعادة توليد الأيونات المتحركة بناءً على pH وقوة التأين
+            regenerateIons(effectivePh);
+        }
+
+        // توليد الأيونات H+ و OH- داخل السائل بناءً على درجة الحموضة وقوة التأين
+        function regenerateIons(ph) {
+            ionsArray = [];
+            const isStrong = currentSolution.category.includes('قوي') && dilutionPercent < 50;
+            // عدد الأيونات الكلي يعكس قوة التأين (تأين تام = أيونات كثيرة، تأين جزئي = أيونات أقل)
+            const totalIons = isStrong ? 28 : (Math.abs(ph - 7) < 0.2 ? 12 : 16);
+
+            let hCount = 0;
+            let ohCount = 0;
+
+            if (Math.abs(ph - 7.0) <= 0.1) {
+                hCount = Math.floor(totalIons / 2);
+                ohCount = hCount;
+            } else if (ph < 7.0) {
+                const ratio = Math.min(0.92, 0.55 + ((7 - ph) / 7) * 0.38);
+                hCount = Math.max(2, Math.round(totalIons * ratio));
+                ohCount = Math.max(1, totalIons - hCount);
+            } else {
+                const ratio = Math.min(0.92, 0.55 + ((ph - 7) / 7) * 0.38);
+                ohCount = Math.max(2, Math.round(totalIons * ratio));
+                hCount = Math.max(1, totalIons - ohCount);
+            }
+
+            const w = canvas.width || 200;
+            const h = canvas.height || 140;
+
+            for (let i = 0; i < hCount; i++) {
+                ionsArray.push({
+                    type: 'H+',
+                    x: Math.random() * (w - 24) + 12,
+                    y: Math.random() * (h - 24) + 12,
+                    vx: (Math.random() - 0.5) * 1.1,
+                    vy: (Math.random() - 0.5) * 1.1
+                });
+            }
+
+            for (let i = 0; i < ohCount; i++) {
+                ionsArray.push({
+                    type: 'OH-',
+                    x: Math.random() * (w - 24) + 12,
+                    y: Math.random() * (h - 24) + 12,
+                    vx: (Math.random() - 0.5) * 1.1,
+                    vy: (Math.random() - 0.5) * 1.1
+                });
+            }
+        }
+
+        // ضبط أبعاد لوحة الرسم Canvas
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width || 200;
+            canvas.height = rect.height || 150;
+        }
+
+        // حلقة تحريك الأيونات داخل الكأس
+        function animateIons() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            ionsArray.forEach(ion => {
+                ion.x += ion.vx;
+                ion.y += ion.vy;
+
+                if (ion.x < 11 || ion.x > w - 11) ion.vx *= -1;
+                if (ion.y < 11 || ion.y > h - 11) ion.vy *= -1;
+
+                // رسم دائرة الأيون
+                ctx.beginPath();
+                ctx.arc(ion.x, ion.y, 9, 0, Math.PI * 2);
+                ctx.fillStyle = ion.type === 'H+' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(37, 99, 235, 0.9)';
+                ctx.fill();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                // كتابة رمز الأيون
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 8px Tajawal, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(ion.type === 'H+' ? 'H⁺' : 'OH⁻', ion.x, ion.y + 0.5);
+            });
+
+            requestAnimationFrame(animateIons);
+        }
+
+        // التبديل بين وضع المختبر الحر ووضع الاختبار
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnLab = document.getElementById('btnModeLab');
+            const btnQuiz = document.getElementById('btnModeQuiz');
+            const quizBanner = document.getElementById('quizBanner');
+            const solutionsPanel = document.getElementById('solutionsPanel');
+
+            if (mode === 'lab') {
+                btnLab.className = 'flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-2';
+                btnQuiz.className = 'flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-2';
+                quizBanner.classList.add('hidden');
+                solutionsPanel.classList.remove('opacity-50', 'pointer-events-none');
+                updateSimulation();
+            } else {
+                btnQuiz.className = 'flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-purple-700 text-white shadow-sm flex items-center justify-center gap-2';
+                btnLab.className = 'flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-2';
+                quizBanner.classList.remove('hidden');
+                solutionsPanel.classList.add('opacity-50', 'pointer-events-none');
+                startQuizChallenge();
+            }
+        }
+
+        // بدء تحدي المحاليل المجهولة
+        function startQuizChallenge() {
+            quizScore = 0;
+            quizTotal = 0;
+            quizIndex = 0;
+            mysteryPool = [...solutionsData].sort(() => Math.random() - 0.5);
+            document.getElementById('quizScore').textContent = '0 / 0';
+            loadMysterySolution();
+        }
+
+        function loadMysterySolution() {
+            quizAnsweredCurrent = false;
+            currentSolution = mysteryPool[quizIndex % mysteryPool.length];
+            dilutionPercent = 0;
+            document.getElementById('dilutionSlider').value = 0;
+            isPaperDipped = false;
+            isMeterDipped = false;
+            document.getElementById('quizQuestionTitle').textContent = `محلول مجهول رقم #${quizIndex + 1}`;
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.add('hidden');
+            updateSimulation();
+        }
+
+        function checkQuizAnswer(selectedCategory) {
+            if (quizAnsweredCurrent) return;
+            quizAnsweredCurrent = true;
+            quizTotal++;
+
+            const correctCategory = currentSolution.category;
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedCategory === correctCategory) {
+                quizScore++;
+                feedback.className = 'mt-3 p-3 rounded-2xl text-sm font-bold text-center bg-emerald-500/25 border border-emerald-300 text-emerald-100';
+                feedback.innerHTML = `✅ إجابة صحيحة! المحلول هو <strong>${currentSolution.name}</strong> (${correctCategory}) وقيمة pH له تساوي <strong>${currentSolution.basePh.toFixed(1)}</strong>.`;
+            } else {
+                feedback.className = 'mt-3 p-3 rounded-2xl text-sm font-bold text-center bg-red-500/25 border border-red-300 text-red-100';
+                feedback.innerHTML = `❌ إجابة غير صحيحة. اخترت (${selectedCategory})، بينما المحلول الصحيح هو <strong>${currentSolution.name}</strong> وهو <strong>${correctCategory}</strong> (pH = ${currentSolution.basePh.toFixed(1)}).`;
+            }
+
+            document.getElementById('quizScore').textContent = `${quizScore} / ${quizTotal}`;
+            updateSimulation();
+        }
+
+        function nextQuizQuestion() {
+            quizIndex++;
+            loadMysterySolution();
+        }
+
+        // تشغيل المختبر عند اكتمال تحميل الصفحة
+        window.onload = initApp;
+    </script>
+</body>
+</html>
